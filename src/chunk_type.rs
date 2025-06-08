@@ -6,25 +6,25 @@ pub struct ChunkType {
     bytes: [u8;4]
 }
 impl ChunkType {
-    const FIFTH_BIT: u8 = 0b0010_0000;
+    const BIT_6: u8 = 0b0010_0000;
     pub fn bytes(&self) -> [u8; 4] {
         self.bytes.clone()
     }
     pub fn is_valid(&self) -> bool {
-        (self.bytes[2] & ChunkType::FIFTH_BIT) == 0
+        (self.bytes[2] & ChunkType::BIT_6) == 0
     }
     pub fn is_critical(&self) -> bool {
-        println!("{} {} {}", std::str::from_utf8(&self.bytes).unwrap(), self.bytes[0], (self.bytes[0] & ChunkType::FIFTH_BIT));
-        (self.bytes[0] & ChunkType::FIFTH_BIT) == 0
+        println!("{} {} {}", std::str::from_utf8(&self.bytes).unwrap(), self.bytes[0], (self.bytes[0] & ChunkType::BIT_6));
+        (self.bytes[0] & ChunkType::BIT_6) == 0
     } 
     pub fn is_public(&self) -> bool {
-        (self.bytes[1] & ChunkType::FIFTH_BIT) == 0
+        (self.bytes[1] & ChunkType::BIT_6) == 0
     }
     pub fn is_reserved_bit_valid(&self) -> bool {
-        (self.bytes[2] & ChunkType::FIFTH_BIT) == 0
+        (self.bytes[2] & ChunkType::BIT_6) == 0
     }
     pub fn is_safe_to_copy(&self) -> bool {
-        (self.bytes[3] & ChunkType::FIFTH_BIT) != 0
+        (self.bytes[3] & ChunkType::BIT_6) != 0
     }
 }
 #[derive (Debug)]
