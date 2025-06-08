@@ -1,7 +1,8 @@
 use std::fmt;
 use std::str::FromStr;
+use std::error::Error;
 #[derive (PartialEq, Eq, Debug)]
-struct ChunkType {
+pub struct ChunkType {
     bytes: [u8;4]
 }
 impl ChunkType {
@@ -26,13 +27,28 @@ impl ChunkType {
         (self.bytes[3] & ChunkType::FIFTH_BIT) != 0
     }
 }
+#[derive (Debug)]
+enum ChunkTypeError {
+    NonAlpha(u8),
+    BadLength(usize)
+}
+impl fmt::Display for ChunkTypeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ChunkTypeError::BadLength(len) => write!(f, "Bad Length {}: expected 5", len),
+            ChunkTypeError::NonAlpha(byte) => write!(f, "Not Ascii Alphabetic {byte}: ({byte:b}", byte=byte)
+        }
+    }
+}
+impl Error for ChunkTypeError {}
+
 impl TryFrom<[u8;4]> for ChunkType {
-    type Error = &'static str;
-    fn try_from(value: [u8;4]) -> Result<Self, Self::Error> {
-        if value.iter().all(|&x| x.is_ascii_alphabetic()) {
-            Ok(ChunkType{bytes: value})
+    type Error = crate::Error;
+    fn try_from(bytes: [u8;4]) -> Result<Self, Self::Error> {
+        if let Some(byte) = bytes.iter().find(|&x| !x.is_ascii_alphabetic()) {
+            Err(Box::new(ChunkTypeError::NonAlpha(*byte)))
         } else {
-            Err("Incorrect Chunk Type")
+            Ok(ChunkType{bytes})
         }
     }
 }
