@@ -9,14 +9,16 @@ struct Png {
 }
 impl Png {
     const STANDARD_SIGNATURE: [u8;8] = [137, 80, 78, 71, 13, 10, 26, 10];
-    const IHDR_LEN: u32 = 13;
+    // even though IHDR is important, the tests don't cover it
+    // Maybe after I finish the book I'll make it spec compliant
+    // const IHDR_LEN: u32 = 13;
 }
 #[derive (Error,Debug)]
 pub enum PngError {
     #[error("Bad Png Signature")]
     PngSignature,
-    #[error("IHDR chunk either not present or invalid")]
-    IHDR,
+    // #[error("IHDR chunk either not present or invalid")]
+    // IHDR,
     #[error("Couldn't get {0} bytes of data from index {1}")]
     Buffer(usize, usize),
     #[error("Invalid chunk: {0}")]
@@ -65,6 +67,7 @@ impl fmt::Display for Png {
         write!(f, "[{}]", self.chunks.iter().map(|chunk| format!("{}", chunk)).collect::<Vec<_>>().join(",\n"))
     }
 }
+#[allow(dead_code)]
 impl Png {
     fn from_chunks(chunks: Vec<Chunk>) -> Png {
         Png{signature: Png::STANDARD_SIGNATURE, chunks}
