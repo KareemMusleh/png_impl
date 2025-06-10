@@ -56,7 +56,7 @@ impl FromStr for ChunkType {
             Err(ChunkTypeError::NonAlpha(byte))
         } else {
             let bytes: [u8;4] = s.as_bytes().try_into().unwrap();
-            Ok(ChunkType {bytes})
+            Ok(ChunkType{bytes})
         }
     }
 }

@@ -6,9 +6,9 @@ use crate::chunk_type::{ChunkType,ChunkTypeError};
 use thiserror::Error;
 pub struct Chunk {
     length : u32,
-    ctype: ChunkType,
+    pub ctype: ChunkType,
     data: Vec<u8>,
-    crc: u32
+    pub crc: u32
 }
 #[derive(Error, Debug)]
 pub enum ChunkError {
@@ -47,7 +47,7 @@ impl TryFrom<&[u8]> for Chunk {
 }
 impl fmt::Display for Chunk {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Chunk of length {} and ctype {}\nCRC = {}", self.length, self.ctype, self.crc)
+        write!(f, "Chunk of length {} ctype {}, CRC = {}", self.length, self.ctype, self.crc)
     }
 }
 #[allow(dead_code)]
@@ -55,7 +55,7 @@ impl Chunk {
     const BIT_32: u32 = 0b1000_0000_0000_0000;
     const CRC_32: Crc<u32> = Crc::<u32>::new(&CRC_32_ISO_HDLC);
     // const CRC 
-    fn new(ctype: ChunkType, data: Vec<u8>) -> Chunk {
+    pub fn new(ctype: ChunkType, data: Vec<u8>) -> Chunk {
         let crc = Self::CRC_32.checksum(&[&ctype.bytes(), data.as_slice()].concat());
         return Chunk{length: data.len() as u32, ctype, data, crc}
     }
@@ -75,7 +75,12 @@ impl Chunk {
         String::from_utf8(self.data.clone())
     }
     pub fn as_bytes(&self) -> Vec<u8> {
-        self.data.clone()
+        self.length.to_be_bytes() 
+            .into_iter()
+            .chain(self.ctype.bytes())
+            .chain(self.data.iter().copied())
+            .chain(self.crc().to_be_bytes())
+            .collect()
     }
 }
 #[cfg(test)]
