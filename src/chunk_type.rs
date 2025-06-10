@@ -1,6 +1,7 @@
+#![allow(unused_variables)]
 use std::fmt;
 use std::str::FromStr;
-use std::error::Error;
+use thiserror::Error;
 #[derive (PartialEq, Eq, Debug)]
 pub struct ChunkType {
     bytes: [u8;4]
@@ -27,41 +28,35 @@ impl ChunkType {
         (self.bytes[3] & ChunkType::BIT_6) != 0
     }
 }
-#[derive (Debug)]
-enum ChunkTypeError {
+#[derive(Error, Debug)]
+pub enum ChunkTypeError {
+    #[error("Bad Length {0}: expected 4")]
     NonAlpha(u8),
+    #[error("Not Ascii Alphabetic {0}: ({0:b}")]
     BadLength(usize)
 }
-impl fmt::Display for ChunkTypeError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ChunkTypeError::BadLength(len) => write!(f, "Bad Length {}: expected 5", len),
-            ChunkTypeError::NonAlpha(byte) => write!(f, "Not Ascii Alphabetic {byte}: ({byte:b}", byte=byte)
-        }
-    }
-}
-impl Error for ChunkTypeError {}
 
 impl TryFrom<[u8;4]> for ChunkType {
-    type Error = crate::Error;
+    type Error = ChunkTypeError;
     fn try_from(bytes: [u8;4]) -> Result<Self, Self::Error> {
         if let Some(byte) = bytes.iter().find(|&x| !x.is_ascii_alphabetic()) {
-            Err(Box::new(ChunkTypeError::NonAlpha(*byte)))
+            Err(ChunkTypeError::NonAlpha(*byte))
         } else {
             Ok(ChunkType{bytes})
         }
     }
 }
 impl FromStr for ChunkType {
-    type Err = &'static str;
+    type Err = ChunkTypeError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.len() != 4 {
-            Err("The string should be 4 characters long")
-        } else if !s.chars().all(|c| c.is_ascii_alphabetic()) {
-            Err("The string should contain ascii alphabetic characters")
+            return Err(ChunkTypeError::BadLength(s.len()))
+        }
+        if let Some(byte) = s.bytes().find(|c| !c.is_ascii_alphabetic()) {
+            Err(ChunkTypeError::NonAlpha(byte))
         } else {
             let bytes: [u8;4] = s.as_bytes().try_into().unwrap();
-            Ok(ChunkType { bytes: bytes })
+            Ok(ChunkType {bytes})
         }
     }
 }

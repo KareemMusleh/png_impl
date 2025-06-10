@@ -23,8 +23,8 @@ version = "0.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4bba5dcd6d2855639fcf65a9af7bbad0bfb6dbf6fe68fba70bab39a6eb973ef4"
 dependencies = [
- "quote",
- "syn",
+ "quote 0.3.15",
+ "syn 0.11.11",
  "synstructure",
 ]
 
@@ -34,6 +34,16 @@ version = "0.1.0"
 dependencies = [
  "crc",
  "display_derive",
+ "thiserror",
+]
+
+[[package]]
+name = "proc-macro2"
+version = "1.0.95"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02b3e5e68a3a1a02aad3ec490a98007cbc13c37cbe84a3cd7b8e406d76e7f778"
+dependencies = [
+ "unicode-ident",
 ]
 
 [[package]]
@@ -43,14 +53,34 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a6e920b65c65f10b2ae65c831a81a073a89edd28c7cce89475bff467ab4167a"
 
 [[package]]
+name = "quote"
+version = "1.0.40"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1885c039570dc00dcb4ff087a89e185fd56bae234ddc7f056a945bf36467248d"
+dependencies = [
+ "proc-macro2",
+]
+
+[[package]]
 name = "syn"
 version = "0.11.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3b891b9015c88c576343b9b3e41c2c11a51c219ef067b264bd9c8aa9b441dad"
 dependencies = [
- "quote",
+ "quote 0.3.15",
  "synom",
  "unicode-xid",
+]
+
+[[package]]
+name = "syn"
+version = "2.0.102"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f6397daf94fa90f058bd0fd88429dd9e5738999cca8d701813c80723add80462"
+dependencies = [
+ "proc-macro2",
+ "quote 1.0.40",
+ "unicode-ident",
 ]
 
 [[package]]
@@ -68,9 +98,35 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a761d12e6d8dcb4dcf952a7a89b475e3a9d69e4a69307e01a470977642914bd"
 dependencies = [
- "quote",
- "syn",
+ "quote 0.3.15",
+ "syn 0.11.11",
 ]
+
+[[package]]
+name = "thiserror"
+version = "2.0.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "567b8a2dae586314f7be2a752ec7474332959c6460e02bde30d702a66d488708"
+dependencies = [
+ "thiserror-impl",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "2.0.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f7cf42b4507d8ea322120659672cf1b9dbb93f8f2d4ecfd6e51350ff5b17a1d"
+dependencies = [
+ "proc-macro2",
+ "quote 1.0.40",
+ "syn 2.0.102",
+]
+
+[[package]]
+name = "unicode-ident"
+version = "1.0.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a5f39404a5da50712a4c1eecf25e90dd62b613502b7e925fd4e4d19b5c96512"
 
 [[package]]
 name = "unicode-xid"

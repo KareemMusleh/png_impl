@@ -1,35 +1,46 @@
+#![allow(unused_variables)]
 // TODO 32nd bit in the length can't be a 1
 use crc::{Crc,CRC_32_ISO_HDLC};
-use display_derive::Display;
 use std::fmt;
-use std::error::Error;
-use crate::chunk_type::{self, ChunkType};
-struct Chunk {
+use crate::chunk_type::{ChunkType,ChunkTypeError};
+use thiserror::Error;
+pub struct Chunk {
     length : u32,
     ctype: ChunkType,
     data: Vec<u8>,
     crc: u32
 }
+#[derive(Error, Debug)]
+pub enum ChunkError {
+    #[error("The chunk is too short")]
+    Short,
+    #[error("Chunk header says the chunk is of length {0}, but it's {1}")]
+    Length(u32, usize),
+    #[error("The crc isn't equal to the crc of the chunk type + data")]
+    Crc,
+    #[error("Invalid chunk type: {0}")]
+    ChunkType(#[from] ChunkTypeError),
+}
 impl TryFrom<&[u8]> for Chunk {
-    type Error = &'static str;
+    type Error = ChunkError;
     fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
         if bytes.len() < 12 {
-            return Err("The chunk is too short")
+            return Err(ChunkError::Short)
         }
         let (length_bytes, rest) = bytes.split_at(4);
         let length = u32::from_be_bytes(length_bytes.try_into().unwrap());
         let (ctype_bytes, rest) = rest.split_at(4);
         if length != rest.len() as u32 - 4 {
-            return Err("Length isn't equalt to the length of the data");
+            return Err(ChunkError::Length(length, rest.len()));
         }
         let (data_bytes, crc_bytes) = rest.split_at(rest.len() - 4);
 
-        let ctype: ChunkType = ChunkType::try_from(<[u8; 4]>::try_from(ctype_bytes).unwrap()).map_err(|_| "The chunk type is wrong")?;
+        let ctype: ChunkType = ChunkType::try_from(<[u8; 4]>::try_from(ctype_bytes).unwrap())?;
         let data: Vec<u8> = data_bytes.try_into().unwrap();
         let crc = u32::from_be_bytes(crc_bytes.try_into().unwrap());
 
-        if crc != Crc::<u32>::new(&CRC_32_ISO_HDLC).checksum(&[&ctype.bytes(), data.as_slice()].concat()) {
-            return Err("The crc is wrong");
+        if crc != Chunk::CRC_32.checksum(&[&ctype.bytes(), data.as_slice()].concat()) {
+            return Err(ChunkError::Crc);
         }
         return Ok(Chunk { length, ctype, data, crc})
     }
@@ -39,11 +50,13 @@ impl fmt::Display for Chunk {
         write!(f, "Chunk of length {} and ctype {}\nCRC = {}", self.length, self.ctype, self.crc)
     }
 }
+#[allow(dead_code)]
 impl Chunk {
     const BIT_32: u32 = 0b1000_0000_0000_0000;
+    const CRC_32: Crc<u32> = Crc::<u32>::new(&CRC_32_ISO_HDLC);
     // const CRC 
     fn new(ctype: ChunkType, data: Vec<u8>) -> Chunk {
-        let crc = Crc::<u32>::new(&CRC_32_ISO_HDLC).checksum(&[&ctype.bytes(), data.as_slice()].concat());
+        let crc = Self::CRC_32.checksum(&[&ctype.bytes(), data.as_slice()].concat());
         return Chunk{length: data.len() as u32, ctype, data, crc}
     }
     pub fn length(&self) -> u32 {
