@@ -1,9 +1,10 @@
 [package]
-name = "png_impl"
+name = "pngme"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+clap = { version = "4.5.40", features = ["derive"] }
 crc = "3.3.0"
 display_derive = "0.0.0"
 thiserror = "2.0.12"

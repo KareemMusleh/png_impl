@@ -3,7 +3,7 @@ use core::{fmt, iter::Iterator, result::Result};
 use std::io::{BufReader, Read};
 use crate::chunk::{Chunk, ChunkError};
 use thiserror::Error;
-struct Png {
+pub struct Png {
     signature: [u8;8],
     chunks: Vec<Chunk>
 }
@@ -36,7 +36,6 @@ fn read_exact(reader: &mut BufReader<&[u8]>, buf: &mut [u8], index: &mut usize) 
 impl TryFrom<&[u8]> for Png {
     type Error = PngError;
     fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
-        println!("\nall bytes: {:?}\n", bytes);
         let mut reader = BufReader::new(bytes);
         // there is probably a better way to do this. cursor crate or sth
         let mut index: usize = 0;
@@ -45,20 +44,18 @@ impl TryFrom<&[u8]> for Png {
         if signature != Png::STANDARD_SIGNATURE {
             return Err(PngError::PngSignature);
         }
-        println!("signature: {:?}\n", signature);
         let mut chunks = Vec::new();
         let mut length_buf = [0u8;4];
         while let Ok(()) = read_exact(&mut reader, &mut length_buf, &mut index) {
-            println!("length_buf {:?}\n", length_buf);
             let rest_len = u32::from_be_bytes(length_buf) as usize + 8;
             let mut rest_buf = vec![0; rest_len];
             read_exact(&mut reader, &mut rest_buf, &mut index)?;
             let chunk_buffer: Vec<u8> = [&length_buf[..], &rest_buf[..]].concat();
-            println!("chunk_buffer {:?}\n", chunk_buffer);
             let chunk = Chunk::try_from(chunk_buffer.as_slice())?;
             chunks.push(chunk);
         }
         // TODO: Add a check for critiical chunks. See https://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html
+        // currently can't do that because of the tests
         Ok(Png{signature, chunks})
     }
 }
@@ -92,7 +89,7 @@ impl Png {
     fn chunks(&self) -> &[Chunk] {
         self.chunks.as_slice()
     }
-    fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
+    pub fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
         self.chunks.iter()
         .find(|&chunk| format!("{}", chunk.ctype) == chunk_type)
     }
@@ -111,7 +108,6 @@ mod tests {
     use super::*;
     use crate::chunk_type::{ChunkType, ChunkTypeError};
     use crate::chunk::Chunk;
-    use std::str::FromStr;
     use std::convert::TryFrom;
 
     fn testing_chunks() -> Vec<Chunk> {
@@ -257,15 +253,12 @@ mod tests {
             .into_iter()
             .flat_map(|chunk| chunk.as_bytes())
             .collect();
-        println!("first chunk {:?}", testing_chunks()[0].as_bytes());
-        println!("first chunk {:?}", testing_chunks()[0].data());
         let bytes: Vec<u8> = Png::STANDARD_SIGNATURE
             .iter()
             .chain(chunk_bytes.iter())
             .copied()
             .collect();
 
-        // println!("{:?}", chunk_bytes);
         let png: Png = TryFrom::try_from(bytes.as_ref()).unwrap();
 
         let _png_string = format!("{}", png);
