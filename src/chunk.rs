@@ -45,11 +45,23 @@ impl TryFrom<&[u8]> for Chunk {
         return Ok(Chunk { length, ctype, data, crc})
     }
 }
+// copied from https://github.com/gabebw/pngme/blob/main/src/chunk.rs#L152C1-L162C2
 impl fmt::Display for Chunk {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Chunk of length {} ctype {}, CRC = {}", self.length, self.ctype, self.crc)
+        write!(
+            f,
+            "{}\t{}",
+            self.chunk_type(),
+            self.data_as_string()
+                .unwrap_or_else(|_| "[data]".to_string())
+        )
     }
 }
+// impl fmt::Display for Chunk {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         write!(f, "Chunk of length {} ctype {}, CRC = {}", self.length, self.ctype, self.crc)
+//     }
+// }
 #[allow(dead_code)]
 impl Chunk {
     const BIT_32: u32 = 0b1000_0000_0000_0000;

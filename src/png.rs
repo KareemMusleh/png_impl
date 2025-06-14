@@ -69,10 +69,10 @@ impl Png {
     fn from_chunks(chunks: Vec<Chunk>) -> Png {
         Png{signature: Png::STANDARD_SIGNATURE, chunks}
     }
-    fn append_chunk(&mut self, chunk: Chunk) {
+    pub fn append_chunk(&mut self, chunk: Chunk) {
         self.chunks.push(chunk);
     }
-    fn remove_first_chunk(&mut self, chunk_type: &str) -> Result<Chunk, PngError> {
+    pub fn remove_first_chunk(&mut self, chunk_type: &str) -> Result<Chunk, PngError> {
         let pos = self.chunks.iter()
             .position(|ch| format!("{}", ch.ctype) == chunk_type);
     
@@ -89,11 +89,11 @@ impl Png {
     fn chunks(&self) -> &[Chunk] {
         self.chunks.as_slice()
     }
-    pub fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
+    pub fn chunk_by_type(&self, ctype: &str) -> Option<&Chunk> {
         self.chunks.iter()
-        .find(|&chunk| format!("{}", chunk.ctype) == chunk_type)
+        .find(|&chunk| format!("{}", chunk.ctype) == ctype)
     }
-    fn as_bytes(&self) -> Vec<u8> {
+    pub fn as_bytes(&self) -> Vec<u8> {
         let bytes_it = self.chunks.iter().flat_map(|chunk| chunk.as_bytes());
         let total_len = 8 + self.chunks.iter().map(|chunk| chunk.as_bytes().len()).sum::<usize>();
         let mut result = Vec::with_capacity(total_len);
